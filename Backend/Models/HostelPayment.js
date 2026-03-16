@@ -51,4 +51,5 @@ hostelPaymentSchema.pre("save", async function () {
   this.dueDate = await new Date(this.year, this.month - 1, 1); // first day of month
 });
 
-export default mongoose.model("HostelPayment", hostelPaymentSchema);
+export default mongoose.models.HostelPayment ||
+  mongoose.model("HostelPayment", hostelPaymentSchema);

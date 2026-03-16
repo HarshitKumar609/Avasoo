@@ -81,5 +81,5 @@ studentSchema.pre("save", async function () {
 studentSchema.methods.comparePassword = async function (enteredPassword) {
   return bcrypt.compare(enteredPassword, this.password);
 };
-
-export default mongoose.model("Student", studentSchema);
+export default mongoose.models.Student ||
+  mongoose.model("Student", studentSchema);

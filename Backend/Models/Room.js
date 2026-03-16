@@ -105,5 +105,4 @@ roomSchema.pre("findOneAndUpdate", function () {
  * Ensure unique index
  */
 // roomSchema.index({ roomNumber: 1 }, { unique: true });
-
-export default mongoose.model("Room", roomSchema);
+export default mongoose.models.Room || mongoose.model("Room", roomSchema);

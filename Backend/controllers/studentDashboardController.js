@@ -1,7 +1,7 @@
 import Student from "../Models/Student.js";
 import Complaint from "../Models/Complaint.js";
 import Notice from "../Models/Notice.js";
-import RoomAllocation from "../Models/roomAllocation.js";
+import RoomAllocation from "../Models/RoomAllocation.js";
 
 export const studentDashboardStats = async (req, res) => {
   try {

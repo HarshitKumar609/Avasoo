@@ -1,6 +1,6 @@
 import Student from "../Models/Student.js";
 import jwt from "jsonwebtoken";
-import RoomAllocation from "../Models/roomAllocation.js";
+import RoomAllocation from "../Models/RoomAllocation.js";
 import { uploadOnCloudinary } from "../utils/Cloudinary.js";
 
 /**

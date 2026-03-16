@@ -35,4 +35,5 @@ roomAllocationSchema.index(
   { unique: true, partialFilterExpression: { active: true } },
 );
 
-export default mongoose.model("RoomAllocation", roomAllocationSchema);
+export default mongoose.models.RoomAllocation ||
+  mongoose.model("RoomAllocation", roomAllocationSchema);
