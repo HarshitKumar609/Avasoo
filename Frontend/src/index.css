@@ -1,0 +1,56 @@
+@import "tailwindcss";
+
+html {
+    scroll-behavior: smooth;
+}
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+    --color-darkmode: #020618;
+    --color-lightmode: #ffff;
+}
+
+.glass-card {
+    @apply rounded-2xl bg-white/80 dark:bg-white/5 backdrop-blur-md border border-gray-200/50 dark:border-white/10 shadow-sm;
+}
+
+.section-title {
+    @apply text-lg font-semibold text-gray-900 dark:text-gray-100;
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.animate-scaleIn {
+    animation: scaleIn 0.2s ease-out;
+}
+
+
+.invert-cursor {
+    position: fixed;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: rgb(255, 255, 255);
+    mix-blend-mode: difference;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+    transition: width 0.2s ease, height 0.2s ease;
+}
+
+.invert-cursor.active {
+    width: 70px;
+    height: 70px;
+    border-radius: 999px;
+}
