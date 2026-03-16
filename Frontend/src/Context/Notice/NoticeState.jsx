@@ -11,7 +11,7 @@ const NoticeState = ({ children }) => {
 
   const [state, dispatch] = useReducer(noticeReducer, initialState);
 
-  const API_URL = "http://localhost:3000/api/notice";
+  const API_URL = "https://avasoo-backend.onrender.com/api/notice";
 
   // 🔹 helper
   const authHeader = (token) => ({

@@ -49,7 +49,7 @@ const EnquiryState = ({ children }) => {
       const res = await fetch(API_URL, {
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // 🔐 protect middleware
+          Authorization: `Bearer ${token}`,
         },
       });
 

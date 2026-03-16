@@ -143,16 +143,6 @@ const AdminAuthState = ({ children }) => {
       }
 
       return data;
-      /*
-        expected backend response:
-        {
-          success,
-          count,
-          totalPages,
-          currentPage,
-          students
-        }
-      */
     } catch {
       toast.error("Server error");
       return null;
