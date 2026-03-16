@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import Student from "../Models/Student.js";
 import Room from "../Models/Room.js";
-import RoomAllocation from "../Models/roomAllocation.js";
+import RoomAllocation from "../Models/RoomAllocation.js";
 
 /**
  * ============================

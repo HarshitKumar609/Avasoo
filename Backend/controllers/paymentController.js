@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import HostelPayment from "../Models/HostelPayment.js";
 import stripe from "../config/stripe.js";
-import RoomAllocation from "../Models/roomAllocation.js";
+import RoomAllocation from "../Models/RoomAllocation.js";
 
 /**
  * ============================
