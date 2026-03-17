@@ -7,12 +7,14 @@ const InvertCursor = () => {
     const cursor = cursorRef.current;
 
     const moveCursor = (e) => {
+      // ✅ ADD THIS LINE
+      cursor.style.opacity = "1";
+
       const { clientX, clientY } = e;
 
       cursor.style.left = `${clientX}px`;
       cursor.style.top = `${clientY}px`;
 
-      // 🔥 KEY FIX: detect element under cursor
       const elementUnderCursor = document.elementFromPoint(clientX, clientY);
 
       if (elementUnderCursor?.closest(".Invert-cursor-text")) {

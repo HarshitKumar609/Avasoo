@@ -241,7 +241,11 @@ export const createStripePaymentIntent = async (req, res) => {
         year,
       },
     });
-
+    // 🔹 DEBUG LOG
+    console.log(
+      "Creating PaymentIntent with metadata:",
+      paymentIntent.metadata,
+    );
     res.status(200).json({
       success: true,
       clientSecret: paymentIntent.client_secret,

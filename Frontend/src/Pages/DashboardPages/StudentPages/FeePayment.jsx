@@ -116,16 +116,14 @@ const FeePayment = () => {
       </button>
 
       {/* Payment History */}
-      {showHistory &&
-        history?.length > 0 &&
-        i(
-          <div className="mt-6">
-            <h3 className="text-2xl font-semibold mb-4">Payment History</h3>
-            {history.map((p) => (
+      {showHistory && (
+        <div className="mt-6">
+          <h3 className="text-2xl font-semibold mb-4">Payment History</h3>
+          {(history?.length || 0) > 0 ? (
+            history.map((p) => (
               <div
                 key={p._id}
-                className="border rounded-xl p-4 mb-4
-                         bg-gray-50 dark:bg-gray-900"
+                className="border rounded-xl p-4 mb-4 bg-gray-50 dark:bg-gray-900"
               >
                 <div className="flex justify-between">
                   <span>
@@ -151,14 +149,14 @@ const FeePayment = () => {
                   </div>
                 )}
               </div>
-            ))}
-            {history.length === 0 && (
-              <div className="text-gray-500 dark:text-gray-400">
-                No payment history found.
-              </div>
-            )}
-          </div>,
-        )}
+            ))
+          ) : (
+            <div className="text-gray-500 dark:text-gray-400">
+              No payment history found.
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

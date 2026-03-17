@@ -36,6 +36,10 @@ export const stripeWebhook = async (req, res) => {
     });
     console.log(test);
     console.log("✅ Payment marked as PAID in DB");
+    console.log(
+      "Webhook received PaymentIntent metadata:",
+      paymentIntent.metadata,
+    );
   }
 
   res.json({ received: true });

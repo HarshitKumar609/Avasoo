@@ -54,3 +54,11 @@ html {
     height: 70px;
     border-radius: 999px;
 }
+
+/* Disable custom cursor completely on touch devices */
+/* 🔥 FORCE DISABLE custom cursor on mobile */
+@media (hover: none) {
+    .invert-cursor {
+        opacity: 0 !important;
+    }
+}

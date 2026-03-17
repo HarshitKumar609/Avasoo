@@ -63,7 +63,7 @@ const PaymentState = ({ children }) => {
       );
 
       const data = await res.json();
-
+      console.log(data);
       if (!res.ok) {
         throw new Error(data.message || "Failed to fetch payment history");
       }
@@ -118,6 +118,7 @@ const PaymentState = ({ children }) => {
     <PaymentContext.Provider
       value={{
         payments,
+        history,
         loading,
         error,
         getStudentPayments,
