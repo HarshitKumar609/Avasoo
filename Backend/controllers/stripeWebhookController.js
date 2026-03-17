@@ -1,3 +1,12 @@
+// stripeWebhookController.js
+import Stripe from "stripe";
+import HostelPayment from "../Models/HostelPayment.js";
+
+// Initialize Stripe with your secret key
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+  apiVersion: "2022-11-15",
+});
+
 export const stripeWebhook = async (req, res) => {
   console.log("🔔 Stripe webhook received");
 
@@ -5,6 +14,7 @@ export const stripeWebhook = async (req, res) => {
   let event;
 
   try {
+    // Verify the webhook signature
     event = stripe.webhooks.constructEvent(
       req.body,
       sig,
@@ -19,28 +29,47 @@ export const stripeWebhook = async (req, res) => {
 
   if (event.type === "payment_intent.succeeded") {
     const paymentIntent = event.data.object;
+
+    // Make sure metadata exists
+    if (!paymentIntent.metadata || !paymentIntent.metadata.paymentId) {
+      console.error("❌ paymentId missing in metadata");
+      console.log(
+        "Webhook received PaymentIntent metadata:",
+        paymentIntent.metadata,
+      );
+      return res.json({ received: true });
+    }
+
     const paymentId = paymentIntent.metadata.paymentId;
 
     console.log("💰 PaymentIntent ID:", paymentIntent.id);
     console.log("📌 Mongo Payment ID:", paymentId);
-
-    if (!paymentId) {
-      console.error("❌ paymentId missing in metadata");
-      return res.json({ received: true });
-    }
-
-    const test = await HostelPayment.findByIdAndUpdate(paymentId, {
-      status: "paid",
-      paidAt: new Date(),
-      stripePaymentIntentId: paymentIntent.id,
-    });
-    console.log(test);
-    console.log("✅ Payment marked as PAID in DB");
     console.log(
       "Webhook received PaymentIntent metadata:",
       paymentIntent.metadata,
     );
+
+    try {
+      const updatedPayment = await HostelPayment.findByIdAndUpdate(
+        paymentId,
+        {
+          status: "paid",
+          paidAt: new Date(),
+          stripePaymentIntentId: paymentIntent.id,
+        },
+        { new: true },
+      );
+
+      if (!updatedPayment) {
+        console.error("❌ Payment not found in DB");
+      } else {
+        console.log("✅ Payment marked as PAID in DB");
+      }
+    } catch (err) {
+      console.error("❌ Error updating payment in DB:", err.message);
+    }
   }
 
+  // Respond 200 OK to Stripe
   res.json({ received: true });
 };
