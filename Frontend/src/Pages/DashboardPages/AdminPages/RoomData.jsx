@@ -7,7 +7,7 @@ import AllocationContext from "../../../Context/AllocationContext/AllocationCont
 
 const RoomData = () => {
   const { token, getAllStudents } = useContext(AdminAuthContext);
-  const { rooms, getAllRooms } = useContext(RoomContext);
+  const { rooms = [], getAllRooms } = useContext(RoomContext);
   const {
     allocations = [],
     getAllAllocations,
@@ -33,9 +33,10 @@ const RoomData = () => {
     });
   }, [token]);
 
+  // Build allocation map safely
   const allocationMap = {};
   (Array.isArray(allocations) ? allocations : [])
-    .filter((a) => a.active)
+    .filter((a) => a?.active && a?.student?._id)
     .forEach((a) => {
       allocationMap[a.student._id] = a;
     });
@@ -49,6 +50,8 @@ const RoomData = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!selectedStudent) return;
+
     const success =
       mode === "allocate"
         ? await allocateRoom({ studentId: selectedStudent._id, roomId }, token)
@@ -72,6 +75,7 @@ const RoomData = () => {
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {students.map((student) => {
+          if (!student?._id) return null; // skip invalid student
           const allocation = allocationMap[student._id];
 
           return (
@@ -89,7 +93,7 @@ const RoomData = () => {
               {allocation ? (
                 <p className="text-sm mt-3 flex items-center gap-2 text-gray-700 dark:text-gray-300">
                   <FiHome className="text-green-500" /> Room{" "}
-                  {allocation.room.roomNumber}
+                  {allocation.room?.roomNumber || "N/A"}
                 </p>
               ) : (
                 <p className="text-sm mt-3 text-gray-400 dark:text-gray-500">
@@ -156,11 +160,13 @@ const RoomData = () => {
               className="w-full p-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
             >
               <option value="">Select Room</option>
-              {rooms.map((room) => (
-                <option key={room._id} value={room._id}>
-                  Room {room.roomNumber} - Block {room.block}
-                </option>
-              ))}
+              {rooms
+                .filter((room) => room?._id) // filter out null rooms
+                .map((room) => (
+                  <option key={room._id} value={room._id}>
+                    Room {room.roomNumber} - Block {room.block}
+                  </option>
+                ))}
             </select>
 
             <div className="flex justify-end gap-3">

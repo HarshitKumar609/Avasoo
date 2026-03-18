@@ -113,8 +113,6 @@ export const deallocateRoom = async (req, res) => {
       });
     }
 
-    const student = await Student.findById(studentId).session(session);
-
     const allocation = await RoomAllocation.findOne({
       student: studentId,
       active: true,
@@ -180,8 +178,6 @@ export const reallocateRoom = async (req, res) => {
         message: "Invalid studentId or newRoomId",
       });
     }
-
-    const student = await Student.findById(studentId).session(session);
 
     const currentAllocation = await RoomAllocation.findOne({
       student: studentId,
@@ -276,9 +272,12 @@ export const getAllAllocations = async (req, res) => {
       .populate("student", "name email")
       .populate("room", "roomNumber capacity occupied");
 
+    // ✅ Filter out any allocation with missing student or room
+    const validAllocations = allocations.filter((a) => a.student && a.room);
+
     res.status(200).json({
       success: true,
-      data: allocations,
+      data: validAllocations,
     });
   } catch (error) {
     res.status(500).json({
@@ -311,10 +310,11 @@ export const getStudentAllocation = async (req, res) => {
       .populate("student", "name email")
       .populate("room", "roomNumber capacity occupied");
 
-    if (!allocation) {
+    // ✅ Check if student or room is missing
+    if (!allocation || !allocation.student || !allocation.room) {
       return res.status(404).json({
         success: false,
-        message: "No active room allocation found",
+        message: "No active room allocation found or invalid references",
       });
     }
 
