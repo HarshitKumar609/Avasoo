@@ -24,7 +24,7 @@ const StudentAuthState = ({ children }) => {
   }, []);
 
   // =====================
-  // LOAD STUDENT ON REFRESH
+  // LOAD USER
   // =====================
   const loadUser = async () => {
     if (!token) {
@@ -49,7 +49,7 @@ const StudentAuthState = ({ children }) => {
       } else {
         logout();
       }
-    } catch (error) {
+    } catch {
       logout();
     } finally {
       setLoading(false);
@@ -57,7 +57,7 @@ const StudentAuthState = ({ children }) => {
   };
 
   // =====================
-  // STUDENT LOGIN
+  // LOGIN
   // =====================
   const studentLogin = async ({ email, password }) => {
     try {
@@ -86,7 +86,7 @@ const StudentAuthState = ({ children }) => {
   };
 
   // =====================
-  // STUDENT ACTIVATION
+  // ACTIVATE
   // =====================
   const activateStudent = async ({ email, password }) => {
     try {
@@ -110,6 +110,35 @@ const StudentAuthState = ({ children }) => {
   };
 
   // =====================
+  // RESET PASSWORD
+  // =====================
+  const resetPassword = async (email, newPassword) => {
+    if (!email || !newPassword) {
+      toast.error("Please fill all fields");
+      return;
+    }
+
+    try {
+      const res = await fetch(`${HOST}/api/student/auth/reset-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, newPassword }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data.message || "Reset failed");
+        return;
+      }
+
+      toast.success("Password reset successfully");
+    } catch {
+      toast.error("Server error");
+    }
+  };
+
+  // =====================
   // UPDATE PROFILE
   // =====================
   const updateStudentProfile = async (formData) => {
@@ -117,7 +146,7 @@ const StudentAuthState = ({ children }) => {
       const res = await fetch(`${HOST}/api/student/auth/profile`, {
         method: "PATCH",
         headers: {
-          Authorization: `Bearer ${token}`, // ❗ no Content-Type for FormData
+          Authorization: `Bearer ${token}`,
         },
         body: formData,
       });
@@ -129,45 +158,14 @@ const StudentAuthState = ({ children }) => {
         return;
       }
 
-      setUser(data.data); // updated student from backend
+      setUser(data.data);
       toast.success("Profile updated successfully");
-    } catch (error) {
-      toast.error("Server error", error);
-    }
-  };
-
-  // =====================
-  // FORGOT PASSWORD
-  // =====================
-  const forgotPassword = async (email) => {
-    if (!email) {
-      toast.error("Please enter your email first");
-      return;
-    }
-
-    try {
-      const res = await fetch(`${HOST}/api/student/auth/forgot-password`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        toast.error(data.message || "Failed to reset password");
-        return;
-      }
-
-      toast.success("A new password has been sent to your email!");
-    } catch (error) {
+    } catch {
       toast.error("Server error");
     }
   };
 
-  // =====================
   // INIT
-  // =====================
   useEffect(() => {
     loadUser();
     // eslint-disable-next-line
@@ -184,7 +182,7 @@ const StudentAuthState = ({ children }) => {
         activateStudent,
         updateStudentProfile,
         logout,
-        forgotPassword, // ✅ added here
+        resetPassword,
       }}
     >
       {children}

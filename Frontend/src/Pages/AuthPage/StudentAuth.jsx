@@ -3,7 +3,7 @@ import StudentAuthContext from "../../Context/StudentAuthContext/StudentAuthCont
 import { useNavigate } from "react-router-dom";
 
 const StudentAuth = () => {
-  const { studentLogin, activateStudent, isAuthenticated } =
+  const { studentLogin, activateStudent, resetPassword, isAuthenticated } =
     useContext(StudentAuthContext);
 
   const navigate = useNavigate();
@@ -11,66 +11,24 @@ const StudentAuth = () => {
   const [mode, setMode] = useState("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [newPassword, setNewPassword] = useState(""); // ✅ new
   const [loading, setLoading] = useState(false);
 
-  // =====================
-  // RESET FORM ON TAB SWITCH
-  // =====================
+  // RESET FORM
   useEffect(() => {
     setEmail("");
     setPassword("");
+    setNewPassword("");
   }, [mode]);
 
-  // =====================
   // REDIRECT
-  // =====================
   useEffect(() => {
     if (isAuthenticated) {
       navigate("/");
     }
   }, [isAuthenticated, navigate]);
 
-  // =====================
-  // FORGOT PASSWORD
-  // =====================
-  const handleForgotPassword = async () => {
-    if (!email.trim()) {
-      alert("Please enter your email first");
-      return;
-    }
-
-    try {
-      setLoading(true);
-
-      const res = await fetch(
-        `${import.meta.env.VITE_URL}/api/student/auth/forgot-password`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email }),
-        },
-      );
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        alert(data.message || "Error sending reset link");
-        return;
-      }
-
-      alert("Password reset instructions sent to your email");
-    } catch (error) {
-      alert("Server error");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // =====================
   // LOGIN
-  // =====================
   const handleLogin = async (e) => {
     e.preventDefault();
 
@@ -84,9 +42,7 @@ const StudentAuth = () => {
     setLoading(false);
   };
 
-  // =====================
   // ACTIVATE
-  // =====================
   const handleActivate = async (e) => {
     e.preventDefault();
 
@@ -100,6 +56,17 @@ const StudentAuth = () => {
     alert("Account activated! Please login.");
     setMode("login");
     setLoading(false);
+  };
+
+  // RESET PASSWORD ✅
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+
+    setLoading(true);
+    await resetPassword(email, newPassword);
+    setLoading(false);
+
+    setMode("login");
   };
 
   return (
@@ -120,7 +87,6 @@ const StudentAuth = () => {
           <form className="space-y-4" onSubmit={handleLogin}>
             <Input
               label="Email"
-              placeholder="Eg: student@hostel.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
@@ -128,18 +94,15 @@ const StudentAuth = () => {
             <Input
               label="Password"
               type="password"
-              placeholder="********"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
 
-            {/* FORGOT PASSWORD */}
-            <div className="flex justify-end mt-2">
+            <div className="flex justify-end">
               <button
                 type="button"
-                onClick={handleForgotPassword}
-                disabled={loading}
-                className="text-sm font-medium text-blue-500 dark:text-blue-400 hover:underline disabled:opacity-50"
+                onClick={() => setMode("reset")} // ✅ changed
+                className="text-sm text-blue-500 hover:underline"
               >
                 Forgot Password?
               </button>
@@ -154,7 +117,6 @@ const StudentAuth = () => {
           <form className="space-y-4" onSubmit={handleActivate}>
             <Input
               label="Email"
-              placeholder="Eg: student@hostel.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
@@ -162,7 +124,6 @@ const StudentAuth = () => {
             <Input
               label="Set Password"
               type="password"
-              placeholder="Set a new password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
@@ -170,83 +131,95 @@ const StudentAuth = () => {
             <PrimaryButton loading={loading}>Activate Account</PrimaryButton>
           </form>
         )}
+
+        {/* RESET PASSWORD  */}
+        {mode === "reset" && (
+          <form className="space-y-4" onSubmit={handleResetPassword}>
+            <Input
+              label="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+
+            <Input
+              label="New Password"
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+            />
+
+            <PrimaryButton loading={loading}>Reset Password</PrimaryButton>
+
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={() => setMode("login")}
+                className="text-sm text-blue-500 hover:underline"
+              >
+                Back to Login
+              </button>
+            </div>
+          </form>
+        )}
       </div>
     </div>
   );
 };
 
-/* =========================
-   Tabs
-========================= */
-const AuthTabs = ({ mode, setMode }) => {
-  return (
-    <div className="relative flex bg-gray-100 dark:bg-gray-800 rounded-xl p-1 mb-6">
-      <div
-        className={`absolute top-1 left-1 h-[calc(100%-0.5rem)] w-[calc(50%-0.25rem)]
-        rounded-lg bg-white dark:bg-gray-900 shadow transition-transform duration-300
-        ${mode === "activate" ? "translate-x-full" : "translate-x-0"}`}
-      />
+/* ========================= UI ========================= */
 
-      <Tab
-        label="Login"
-        active={mode === "login"}
-        onClick={() => setMode("login")}
-      />
-      <Tab
-        label="Activate"
-        active={mode === "activate"}
-        onClick={() => setMode("activate")}
-      />
-    </div>
-  );
-};
+const AuthTabs = ({ mode, setMode }) => (
+  <div className="relative flex bg-gray-100 dark:bg-gray-800 rounded-xl p-1 mb-6">
+    <div
+      className={`absolute top-1 left-1 h-[calc(100%-0.5rem)] w-[calc(50%-0.25rem)]
+      rounded-lg bg-white dark:bg-gray-900 shadow transition-transform duration-300
+      ${mode === "activate" ? "translate-x-full" : "translate-x-0"}`}
+    />
+
+    <Tab
+      label="Login"
+      active={mode === "login"}
+      onClick={() => setMode("login")}
+    />
+    <Tab
+      label="Activate"
+      active={mode === "activate"}
+      onClick={() => setMode("activate")}
+    />
+  </div>
+);
 
 const Tab = ({ label, active, onClick }) => (
   <button
     onClick={onClick}
     className={`relative z-10 flex-1 py-2 text-sm font-semibold rounded-lg
-      ${
-        active
-          ? "text-blue-600 dark:text-blue-400"
-          : "text-gray-600 dark:text-gray-400"
-      }`}
+    ${active ? "text-blue-600" : "text-gray-600"}`}
   >
     {label}
   </button>
 );
 
-/* =========================
-   Input
-========================= */
-const Input = ({ label, type = "text", placeholder, value, onChange }) => (
+const Input = ({ label, type = "text", value, onChange }) => (
   <div>
-    <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-      {label}
-    </label>
+    <label className="block text-sm mb-1">{label}</label>
     <input
       type={type}
-      placeholder={placeholder}
       value={value}
       onChange={onChange}
       required
-      className="w-full px-4 py-2 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+      className="w-full px-4 py-2 border rounded-lg"
     />
   </div>
 );
 
-/* =========================
-   Button
-========================= */
-const PrimaryButton = ({ children, loading }) => {
-  return (
-    <button
-      type="submit"
-      disabled={loading}
-      className="w-full py-2 rounded-lg text-white font-semibold bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
-    >
-      {loading ? "Please wait..." : children}
-    </button>
-  );
-};
+const PrimaryButton = ({ children, loading }) => (
+  <button
+    type="submit"
+    disabled={loading}
+    className="w-full py-2 bg-blue-600 text-white rounded-lg"
+  >
+    {loading ? "Please wait..." : children}
+  </button>
+);
 
 export default StudentAuth;

@@ -204,14 +204,20 @@ export const studentLogin = async (req, res) => {
   }
 };
 
-//.......................................forget password..........................
+//.......................................RESET PASSWORD ..........................
 
-//  FORGOT PASSWORD CONTROLLER
-export const forgotPassword = async (req, res) => {
+export const resetPassword = async (req, res) => {
   try {
-    const { email } = req.body;
+    const { email, newPassword } = req.body;
 
-    const student = await Student.findOne({ email });
+    if (!email || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and new password are required",
+      });
+    }
+
+    const student = await Student.findOne({ email }).select("+password");
 
     if (!student) {
       return res.status(404).json({
@@ -220,10 +226,7 @@ export const forgotPassword = async (req, res) => {
       });
     }
 
-    // generate random password
-    const newPassword = Math.random().toString(36).slice(-8);
-
-    // hash password
+    //  hash new password
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
     student.password = hashedPassword;
@@ -231,8 +234,7 @@ export const forgotPassword = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "New password generated",
-      newPassword,
+      message: "Password reset successfully",
     });
   } catch (error) {
     res.status(500).json({
@@ -241,7 +243,6 @@ export const forgotPassword = async (req, res) => {
     });
   }
 };
-
 /**
  * =========================
  * GET PROFILE
