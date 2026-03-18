@@ -6,6 +6,7 @@ import {
   studentLogin,
   getStudentProfile,
   getAllStudents,
+  forgotPassword,
   profileUpdate,
 } from "../controllers/studentContoller.js";
 import { upload } from "../middleware/multer.js";
@@ -15,6 +16,7 @@ const router = express.Router();
 router.post("/createstudent", protect, authorizeRoles("admin"), createStudent);
 router.post("/signup", activateStudent);
 router.post("/login", studentLogin);
+router.post("/forgot-password", forgotPassword);
 router.get("/allstudents", protect, authorizeRoles("admin"), getAllStudents);
 router.get("/me", protect, authorizeRoles("student"), getStudentProfile);
 router.patch(

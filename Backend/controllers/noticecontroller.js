@@ -1,4 +1,5 @@
 import Notice from "../Models/Notice.js";
+import { logActivity } from "../utils/logActivity.js";
 
 //....................notice controller functions will be here....................
 
@@ -15,10 +16,12 @@ export const createNotice = async (req, res) => {
     const notice = new Notice({
       title,
       message,
-      createdBy: req.user.id, // ✅ FIX HERE
+      createdBy: req.user.id,
     });
 
     await notice.save();
+    // ACTIVITY LOG
+    await logActivity(`Notice created: ${notice.title}`, "notice");
 
     res.status(201).json({
       success: true,
@@ -79,6 +82,9 @@ export const updateNotice = async (req, res) => {
       return res.status(404).json({ message: "Notice not found" });
     }
 
+    //  ACTIVITY LOG
+    await logActivity(`Notice updated: ${notice.title}`, "notice");
+
     res.status(200).json({
       success: true,
       notice,
@@ -95,6 +101,9 @@ export const deleteNotice = async (req, res) => {
     if (!notice) {
       return res.status(404).json({ message: "Notice not found" });
     }
+
+    // ACTIVITY LOG
+    await logActivity(`Notice deleted: ${notice.title}`, "notice");
 
     res.status(200).json({
       success: true,

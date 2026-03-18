@@ -3,31 +3,107 @@ import StudentAuthContext from "../../Context/StudentAuthContext/StudentAuthCont
 import { useNavigate } from "react-router-dom";
 
 const StudentAuth = () => {
-  const { token, studentLogin, activateStudent, isAuthenticated } =
+  const { studentLogin, activateStudent, isAuthenticated } =
     useContext(StudentAuthContext);
+
   const navigate = useNavigate();
+
   const [mode, setMode] = useState("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e) => {
-    e.preventDefault();
-    studentLogin({ email, password });
-  };
+  // =====================
+  // RESET FORM ON TAB SWITCH
+  // =====================
+  useEffect(() => {
+    setEmail("");
+    setPassword("");
+  }, [mode]);
 
-  const handleActivate = (e) => {
-    e.preventDefault();
-    activateStudent({ email, password });
-  };
-
+  // =====================
+  // REDIRECT
+  // =====================
   useEffect(() => {
     if (isAuthenticated) {
       navigate("/");
     }
   }, [isAuthenticated, navigate]);
 
+  // =====================
+  // FORGOT PASSWORD
+  // =====================
+  const handleForgotPassword = async () => {
+    if (!email.trim()) {
+      alert("Please enter your email first");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const res = await fetch(
+        `${import.meta.env.VITE_URL}/api/student/auth/forgot-password`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email }),
+        },
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.message || "Error sending reset link");
+        return;
+      }
+
+      alert("Password reset instructions sent to your email");
+    } catch (error) {
+      alert("Server error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // =====================
+  // LOGIN
+  // =====================
+  const handleLogin = async (e) => {
+    e.preventDefault();
+
+    if (!email || !password) {
+      alert("Please fill all fields");
+      return;
+    }
+
+    setLoading(true);
+    await studentLogin({ email, password });
+    setLoading(false);
+  };
+
+  // =====================
+  // ACTIVATE
+  // =====================
+  const handleActivate = async (e) => {
+    e.preventDefault();
+
+    if (!email || !password) {
+      alert("Please fill all fields");
+      return;
+    }
+
+    setLoading(true);
+    await activateStudent({ email, password });
+    alert("Account activated! Please login.");
+    setMode("login");
+    setLoading(false);
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
       <div className="w-full max-w-md bg-white dark:bg-gray-900 shadow-2xl rounded-2xl p-8 border border-gray-200 dark:border-gray-700">
         <h2 className="text-3xl font-extrabold text-center text-gray-800 dark:text-white mb-2">
           Student Portal
@@ -37,10 +113,9 @@ const StudentAuth = () => {
           Login or activate your account
         </p>
 
-        {/* Tabs */}
         <AuthTabs mode={mode} setMode={setMode} />
 
-        {/* Forms */}
+        {/* LOGIN */}
         {mode === "login" && (
           <form className="space-y-4" onSubmit={handleLogin}>
             <Input
@@ -49,17 +124,32 @@ const StudentAuth = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
+
             <Input
               label="Password"
               type="password"
-              placeholder="**********"
+              placeholder="********"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
-            <PrimaryButton color="blue">Login</PrimaryButton>
+
+            {/* FORGOT PASSWORD */}
+            <div className="flex justify-end mt-2">
+              <button
+                type="button"
+                onClick={handleForgotPassword}
+                disabled={loading}
+                className="text-sm font-medium text-blue-500 dark:text-blue-400 hover:underline disabled:opacity-50"
+              >
+                Forgot Password?
+              </button>
+            </div>
+
+            <PrimaryButton loading={loading}>Login</PrimaryButton>
           </form>
         )}
 
+        {/* ACTIVATE */}
         {mode === "activate" && (
           <form className="space-y-4" onSubmit={handleActivate}>
             <Input
@@ -68,6 +158,7 @@ const StudentAuth = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
+
             <Input
               label="Set Password"
               type="password"
@@ -75,7 +166,8 @@ const StudentAuth = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
-            <PrimaryButton color="blue">Activate Account</PrimaryButton>
+
+            <PrimaryButton loading={loading}>Activate Account</PrimaryButton>
           </form>
         )}
       </div>
@@ -83,17 +175,18 @@ const StudentAuth = () => {
   );
 };
 
+/* =========================
+   Tabs
+========================= */
 const AuthTabs = ({ mode, setMode }) => {
   return (
-    <div className="relative flex bg-gray-100 dark:bg-gray-800 rounded-xl p-1 mb-6 overflow-hidden">
-      {/* Sliding Indicator */}
+    <div className="relative flex bg-gray-100 dark:bg-gray-800 rounded-xl p-1 mb-6">
       <div
         className={`absolute top-1 left-1 h-[calc(100%-0.5rem)] w-[calc(50%-0.25rem)]
-        rounded-lg bg-white dark:bg-gray-900 shadow transition-transform duration-300 ease-in-out
+        rounded-lg bg-white dark:bg-gray-900 shadow transition-transform duration-300
         ${mode === "activate" ? "translate-x-full" : "translate-x-0"}`}
       />
 
-      {/* Tabs */}
       <Tab
         label="Login"
         active={mode === "login"}
@@ -111,7 +204,7 @@ const AuthTabs = ({ mode, setMode }) => {
 const Tab = ({ label, active, onClick }) => (
   <button
     onClick={onClick}
-    className={`relative z-10 flex-1 py-2 text-sm font-semibold rounded-lg transition-colors duration-300
+    className={`relative z-10 flex-1 py-2 text-sm font-semibold rounded-lg
       ${
         active
           ? "text-blue-600 dark:text-blue-400"
@@ -122,7 +215,10 @@ const Tab = ({ label, active, onClick }) => (
   </button>
 );
 
-const Input = ({ label, type = "text", placeholder = "", value, onChange }) => (
+/* =========================
+   Input
+========================= */
+const Input = ({ label, type = "text", placeholder, value, onChange }) => (
   <div>
     <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
       {label}
@@ -138,17 +234,17 @@ const Input = ({ label, type = "text", placeholder = "", value, onChange }) => (
   </div>
 );
 
-const PrimaryButton = ({ children, color }) => {
-  const colors = {
-    blue: "bg-blue-600 hover:bg-blue-700",
-  };
-
+/* =========================
+   Button
+========================= */
+const PrimaryButton = ({ children, loading }) => {
   return (
     <button
       type="submit"
-      className={`w-full py-2 rounded-lg text-white font-semibold transition ${colors[color]}`}
+      disabled={loading}
+      className="w-full py-2 rounded-lg text-white font-semibold bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
     >
-      {children}
+      {loading ? "Please wait..." : children}
     </button>
   );
 };

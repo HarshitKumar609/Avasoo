@@ -44,7 +44,7 @@ const StudentAuthState = ({ children }) => {
       const data = await res.json();
 
       if (res.ok && data.student) {
-        setUser(data.student); // ✅ FIXED
+        setUser(data.student);
         setIsAuthenticated(true);
       } else {
         logout();
@@ -109,6 +109,9 @@ const StudentAuthState = ({ children }) => {
     }
   };
 
+  // =====================
+  // UPDATE PROFILE
+  // =====================
   const updateStudentProfile = async (formData) => {
     try {
       const res = await fetch(`${HOST}/api/student/auth/profile`, {
@@ -134,6 +137,35 @@ const StudentAuthState = ({ children }) => {
   };
 
   // =====================
+  // FORGOT PASSWORD
+  // =====================
+  const forgotPassword = async (email) => {
+    if (!email) {
+      toast.error("Please enter your email first");
+      return;
+    }
+
+    try {
+      const res = await fetch(`${HOST}/api/student/auth/forgot-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data.message || "Failed to reset password");
+        return;
+      }
+
+      toast.success("A new password has been sent to your email!");
+    } catch (error) {
+      toast.error("Server error");
+    }
+  };
+
+  // =====================
   // INIT
   // =====================
   useEffect(() => {
@@ -152,6 +184,7 @@ const StudentAuthState = ({ children }) => {
         activateStudent,
         updateStudentProfile,
         logout,
+        forgotPassword, // ✅ added here
       }}
     >
       {children}

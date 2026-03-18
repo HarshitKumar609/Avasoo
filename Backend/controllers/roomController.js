@@ -4,6 +4,7 @@ import {
   deleteFromCloudinary,
   replaceOnCloudinary,
 } from "../utils/Cloudinary.js";
+import { logActivity } from "../utils/logActivity.js";
 
 /**
  * CREATE ROOM
@@ -57,6 +58,9 @@ export const createRoom = async (req, res) => {
       coverImage,
       images,
     });
+
+    //  ACTIVITY LOG
+    await logActivity(`Room created: Room ${room.roomNumber}`, "room");
 
     res.status(201).json({
       success: true,
@@ -166,6 +170,9 @@ export const updateRoom = async (req, res) => {
 
     await room.save();
 
+    //  ACTIVITY LOG
+    await logActivity(`Room updated: Room ${room.roomNumber}`, "room");
+
     res.status(200).json({
       success: true,
       message: "Room updated successfully",
@@ -210,6 +217,9 @@ export const deleteRoom = async (req, res) => {
     }
 
     await room.deleteOne();
+
+    //  ACTIVITY LOG
+    await logActivity(`Room deleted: Room ${room.roomNumber}`, "room");
 
     res.status(200).json({
       success: true,

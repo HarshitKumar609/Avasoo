@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import Student from "../Models/Student.js";
 import Room from "../Models/Room.js";
 import RoomAllocation from "../Models/RoomAllocation.js";
+import { logActivity } from "../utils/logActivity.js";
 
 /**
  * ============================
@@ -15,7 +16,6 @@ export const allocateRoom = async (req, res) => {
   try {
     const { studentId, roomId } = req.body;
 
-    // Validate IDs
     if (
       !mongoose.Types.ObjectId.isValid(studentId) ||
       !mongoose.Types.ObjectId.isValid(roomId)
@@ -26,7 +26,6 @@ export const allocateRoom = async (req, res) => {
       });
     }
 
-    // Check student exists
     const student = await Student.findById(studentId).session(session);
     if (!student) {
       return res.status(404).json({
@@ -35,7 +34,6 @@ export const allocateRoom = async (req, res) => {
       });
     }
 
-    // Ensure student has no active allocation
     const existingAllocation = await RoomAllocation.findOne({
       student: studentId,
       active: true,
@@ -48,7 +46,6 @@ export const allocateRoom = async (req, res) => {
       });
     }
 
-    // Check room
     const room = await Room.findById(roomId).session(session);
     if (!room) {
       return res.status(404).json({
@@ -64,7 +61,6 @@ export const allocateRoom = async (req, res) => {
       });
     }
 
-    // Create allocation
     const allocation = await RoomAllocation.create(
       [
         {
@@ -77,12 +73,17 @@ export const allocateRoom = async (req, res) => {
       { session },
     );
 
-    // Update room occupancy
     room.occupied += 1;
     await room.save({ session });
 
     await session.commitTransaction();
     session.endSession();
+
+    // 🔥 ACTIVITY LOG
+    await logActivity(
+      `Room allocated: ${student.name} → Room ${room.roomNumber}`,
+      "room",
+    );
 
     res.status(201).json({
       success: true,
@@ -119,6 +120,8 @@ export const deallocateRoom = async (req, res) => {
       });
     }
 
+    const student = await Student.findById(studentId).session(session);
+
     const allocation = await RoomAllocation.findOne({
       student: studentId,
       active: true,
@@ -136,19 +139,23 @@ export const deallocateRoom = async (req, res) => {
       throw new Error("Allocated room not found");
     }
 
-    // Update room occupancy
     if (room.occupied > 0) {
       room.occupied -= 1;
       await room.save({ session });
     }
 
-    // Mark allocation inactive (history preserved)
     allocation.active = false;
     allocation.deallocatedAt = new Date();
     await allocation.save({ session });
 
     await session.commitTransaction();
     session.endSession();
+
+    //  ACTIVITY LOG
+    await logActivity(
+      `Room deallocated: ${student.name} left Room ${room.roomNumber}`,
+      "room",
+    );
 
     res.status(200).json({
       success: true,
@@ -187,7 +194,8 @@ export const reallocateRoom = async (req, res) => {
       });
     }
 
-    // Find active allocation
+    const student = await Student.findById(studentId).session(session);
+
     const currentAllocation = await RoomAllocation.findOne({
       student: studentId,
       active: true,
@@ -200,7 +208,6 @@ export const reallocateRoom = async (req, res) => {
       });
     }
 
-    // Prevent same-room reallocation
     if (currentAllocation.room.toString() === newRoomId) {
       return res.status(400).json({
         success: false,
@@ -230,16 +237,13 @@ export const reallocateRoom = async (req, res) => {
       });
     }
 
-    // Update old room
     oldRoom.occupied -= 1;
     await oldRoom.save({ session });
 
-    // Deactivate old allocation
     currentAllocation.active = false;
     currentAllocation.deallocatedAt = new Date();
     await currentAllocation.save({ session });
 
-    // Create new allocation
     const newAllocation = await RoomAllocation.create(
       [
         {
@@ -252,12 +256,17 @@ export const reallocateRoom = async (req, res) => {
       { session },
     );
 
-    // Update new room
     newRoom.occupied += 1;
     await newRoom.save({ session });
 
     await session.commitTransaction();
     session.endSession();
+
+    //  ACTIVITY LOG
+    await logActivity(
+      `Room changed: ${student.name} moved from Room ${oldRoom.roomNumber} → Room ${newRoom.roomNumber}`,
+      "room",
+    );
 
     res.status(200).json({
       success: true,

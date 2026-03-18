@@ -1,4 +1,5 @@
 import Complaint from "../Models/Complaint.js";
+import { logActivity } from "../utils/logActivity.js";
 
 /* =======================
    STUDENT CONTROLLERS
@@ -13,6 +14,14 @@ export const createComplaint = async (req, res) => {
       description: req.body.description,
     });
 
+    // ✅ FIXED ACTIVITY LOG
+    await logActivity(
+      `Complaint created: ${complaint.subject}`,
+      "complaint",
+      req.user.id,
+      req.user.role,
+    );
+
     res.status(201).json(complaint);
   } catch (err) {
     res.status(500).json({ message: "Failed to create complaint" });
@@ -22,9 +31,9 @@ export const createComplaint = async (req, res) => {
 // Get logged-in student's complaints
 export const getStudentComplaints = async (req, res) => {
   try {
-    const complaints = await Complaint.find({ studentId: req.user.id }).sort({
-      createdAt: -1,
-    });
+    const complaints = await Complaint.find({
+      studentId: req.user.id,
+    }).sort({ createdAt: -1 });
 
     res.json(complaints);
   } catch (err) {
@@ -50,23 +59,39 @@ export const updateComplaint = async (req, res) => {
     complaint.description = req.body.description;
     await complaint.save();
 
+    // ✅ FIXED ACTIVITY LOG
+    await logActivity(
+      `Complaint updated: ${complaint.subject}`,
+      "complaint",
+      req.user.id,
+      req.user.role,
+    );
+
     res.json(complaint);
   } catch (err) {
     res.status(500).json({ message: "Failed to update complaint" });
   }
 };
 
-// Student: delete complaint (ANY status)
+// Delete complaint
 export const deleteComplaint = async (req, res) => {
   try {
     const complaint = await Complaint.findOneAndDelete({
       _id: req.params.id,
-      studentId: req.user.id, // ownership check
+      studentId: req.user.id,
     });
 
     if (!complaint) {
       return res.status(404).json({ message: "Complaint not found" });
     }
+
+    // ✅ FIXED ACTIVITY LOG
+    await logActivity(
+      `Complaint deleted: ${complaint.subject}`,
+      "complaint",
+      req.user.id,
+      req.user.role,
+    );
 
     res.json({ success: true, message: "Complaint deleted successfully" });
   } catch (error) {
@@ -91,7 +116,7 @@ export const getAllComplaints = async (req, res) => {
   }
 };
 
-// Admin: resolve complaint (ONLY action admin can do)
+// Admin: resolve complaint
 export const resolveComplaint = async (req, res) => {
   try {
     const complaint = await Complaint.findById(req.params.id);
@@ -101,6 +126,14 @@ export const resolveComplaint = async (req, res) => {
 
     complaint.status = "Resolved";
     await complaint.save();
+
+    // ✅ ADMIN ACTIVITY LOG
+    await logActivity(
+      `Complaint resolved: ${complaint.subject}`,
+      "complaint",
+      req.user.id,
+      req.user.role, // should be "admin"
+    );
 
     res.json(complaint);
   } catch (err) {

@@ -2,6 +2,7 @@ import Student from "../Models/Student.js";
 import Complaint from "../Models/Complaint.js";
 import Notice from "../Models/Notice.js";
 import RoomAllocation from "../Models/RoomAllocation.js";
+import Activity from "../Models/Activity.js";
 
 export const studentDashboardStats = async (req, res) => {
   try {
@@ -22,18 +23,31 @@ export const studentDashboardStats = async (req, res) => {
       active: true,
     }).populate("room");
 
-    // 3️⃣ Parallel stats (✅ FIX HERE)
-    const [pendingComplaints, noticesCount, recentNotices] = await Promise.all([
-      Complaint.countDocuments({
-        studentId: studentId, // ✅ FIXED
-        status: "Pending",
-      }),
+    // 3️⃣ Run everything in parallel 🚀
+    const [pendingComplaints, noticesCount, recentNotices, activities] =
+      await Promise.all([
+        Complaint.countDocuments({
+          studentId: studentId,
+          status: "Pending",
+        }),
 
-      Notice.countDocuments(),
+        Notice.countDocuments(),
 
-      Notice.find().sort({ createdAt: -1 }).limit(3).select("title createdAt"),
-    ]);
+        Notice.find()
+          .sort({ createdAt: -1 })
+          .limit(3)
+          .select("title createdAt"),
 
+        // 🔥 FIXED ACTIVITY
+        Activity.find({
+          $or: [{ user: studentId }, { type: "notice" }],
+        })
+          .populate("user", "name") // ✅ FIX
+          .sort({ createdAt: -1 })
+          .limit(5),
+      ]);
+
+    // 4️⃣ Response
     res.status(200).json({
       success: true,
       data: {
@@ -47,7 +61,7 @@ export const studentDashboardStats = async (req, res) => {
           : null,
 
         complaints: {
-          pending: pendingComplaints, // ✅ NOW WORKS
+          pending: pendingComplaints,
         },
 
         notices: {
@@ -58,6 +72,9 @@ export const studentDashboardStats = async (req, res) => {
         fees: {
           status: student.feesStatus || "Due",
         },
+
+        // 🔥 FINAL ACTIVITY
+        activity: activities,
       },
     });
   } catch (error) {

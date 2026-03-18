@@ -1,9 +1,41 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { FiHome, FiBell, FiAlertCircle, FiCreditCard } from "react-icons/fi";
 import StudentDashboardContext from "../Context/DashBoardStatus/StudentDashboardContext";
 
 const StudentDashboard = () => {
   const { dashboardData, loading } = useContext(StudentDashboardContext);
+
+  // ✅ NEW STATE
+  const [activities, setActivities] = useState([]);
+
+  // ✅ FETCH ACTIVITY
+  const fetchActivities = async () => {
+    try {
+      const token = localStorage.getItem("student_token");
+
+      const res = await fetch(
+        `${import.meta.env.VITE_URL}/api/dashboardStatus/student/dashboard`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setActivities(data.data.activity || []);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  // ✅ CALL API
+  useEffect(() => {
+    fetchActivities();
+  }, []);
 
   return (
     <div className="min-h-screen p-6">
@@ -86,6 +118,29 @@ const StudentDashboard = () => {
             />
           </div>
         </div>
+      </div>
+
+      {/*  NEW: Recent Activity (ADDED ONLY) */}
+      <div className="glass-card p-6 mt-6">
+        <h2 className="section-title">Recent Activity</h2>
+
+        <ul className="mt-4 space-y-4">
+          {activities.length === 0 ? (
+            <li>No activity yet</li>
+          ) : (
+            activities.map((item) => (
+              <li
+                key={item._id}
+                className="flex justify-between items-center rounded-lg border border-gray-200 dark:border-gray-800 px-4 py-3"
+              >
+                <span>{item.text}</span>
+                <span className="text-xs text-gray-400">
+                  {new Date(item.createdAt).toLocaleString()}
+                </span>
+              </li>
+            ))
+          )}
+        </ul>
       </div>
     </div>
   );

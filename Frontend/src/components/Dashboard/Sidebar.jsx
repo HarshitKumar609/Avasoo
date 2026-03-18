@@ -102,7 +102,7 @@ const Sidebar = () => {
           <div className="flex items-center gap-3 mb-4">
             <img
               src={
-                user.profilepic ||
+                user.profileImage ||
                 "https://static.vecteezy.com/system/resources/thumbnails/048/216/761/small/modern-male-avatar-with-black-hair-and-hoodie-illustration-free-png.png"
               }
               alt="User"

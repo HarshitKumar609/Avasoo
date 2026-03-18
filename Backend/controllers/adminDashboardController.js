@@ -3,6 +3,8 @@ import Complaint from "../Models/Complaint.js";
 import Notice from "../Models/Notice.js";
 import Room from "../Models/Room.js";
 
+import Activity from "../Models/Activity.js";
+
 // Dashboard Stats
 export const dashboardStats = async (req, res) => {
   try {
@@ -51,43 +53,32 @@ export const dashboardStats = async (req, res) => {
   }
 };
 
-// Recent activity
 export const getRecentActivity = async (req, res) => {
   try {
-    // fetch latest 10 activities: students, complaints, notices
-    const students = await Student.find()
-      .sort({ createdAt: -1 })
-      .limit(5)
-      .lean();
-    const complaints = await Complaint.find({ status: "active" })
-      .sort({ updatedAt: -1 })
-      .limit(5)
-      .lean();
-    const notices = await Notice.find().sort({ createdAt: -1 }).limit(5).lean();
+    let activities;
 
-    const activities = [];
+    // ✅ ADMIN → sees all
+    if (req.user.role === "admin") {
+      activities = await Activity.find().sort({ createdAt: -1 }).limit(10);
+    }
 
-    students.forEach((s) =>
-      activities.push({
-        text: `New student added: ${s.name}`,
-        time: s.createdAt,
-      }),
-    );
-    complaints.forEach((c) =>
-      activities.push({
-        text: `Complaint active: ${c.title}`,
-        time: c.updatedAt,
-      }),
-    );
-    notices.forEach((n) =>
-      activities.push({ text: `Notice posted: ${n.title}`, time: n.createdAt }),
-    );
+    // ✅ STUDENT → sees only their activity
+    else if (req.user.role === "student") {
+      activities = await Activity.find({
+        user: req.user.id,
+      })
+        .sort({ createdAt: -1 })
+        .limit(10);
+    }
 
-    // sort by time descending
-    activities.sort((a, b) => new Date(b.time) - new Date(a.time));
-
-    res.status(200).json({ activities: activities.slice(0, 10) }); // latest 10
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(200).json({
+      success: true,
+      activities,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };

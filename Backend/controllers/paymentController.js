@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import HostelPayment from "../Models/HostelPayment.js";
 import stripe from "../config/stripe.js";
 import RoomAllocation from "../Models/RoomAllocation.js";
+import { logActivity } from "../utils/logActivity.js";
 
 /**
  * ============================
@@ -60,6 +61,11 @@ export const createMonthlyPayment = async (req, res) => {
       dueDate: new Date(year, month - 1, 1), // <-- add this
     });
 
+    //  ACTIVITY LOG
+    await logActivity(
+      `Payment generated: ${student.name} - ₹${payment.amount} (${month}/${year})`,
+      "payment",
+    );
     res.status(201).json({
       success: true,
       message: "Monthly payment created",

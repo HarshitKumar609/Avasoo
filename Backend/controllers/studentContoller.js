@@ -2,6 +2,8 @@ import Student from "../Models/Student.js";
 import jwt from "jsonwebtoken";
 import RoomAllocation from "../Models/RoomAllocation.js";
 import { uploadOnCloudinary } from "../utils/Cloudinary.js";
+import { logActivity } from "../utils/logActivity.js";
+import bcrypt from "bcryptjs";
 
 /**
  * =========================
@@ -10,7 +12,6 @@ import { uploadOnCloudinary } from "../utils/Cloudinary.js";
  */
 export const getAllStudents = async (req, res) => {
   try {
-    // (optional) role protection
     if (req.user && req.user.role !== "admin") {
       return res.status(403).json({
         success: false,
@@ -18,24 +19,20 @@ export const getAllStudents = async (req, res) => {
       });
     }
 
-    // fetch students (exclude password always)
     const students = await Student.find()
       .select("-password")
       .sort({ createdAt: -1 })
       .lean();
 
-    // fetch active room allocations
     const allocations = await RoomAllocation.find({ active: true })
       .populate("room", "roomNumber block")
       .lean();
 
-    // map studentId -> room
     const roomMap = {};
     allocations.forEach((a) => {
       roomMap[a.student.toString()] = a.room;
     });
 
-    // attach room to student
     const formattedStudents = students.map((s) => ({
       ...s,
       room: roomMap[s._id.toString()] || null,
@@ -88,6 +85,9 @@ export const createStudent = async (req, res) => {
       isActive: false,
     });
 
+    //  ACTIVITY LOG
+    await logActivity(`New student added: ${student.name}`, "student");
+
     res.status(201).json({
       success: true,
       message: "Student created successfully",
@@ -131,6 +131,9 @@ export const activateStudent = async (req, res) => {
     student.password = password;
     student.isActive = true;
     await student.save();
+
+    // 🔥 ACTIVITY LOG
+    await logActivity(`Student activated: ${student.name}`, "student");
 
     res.status(200).json({
       success: true,
@@ -201,6 +204,49 @@ export const studentLogin = async (req, res) => {
   }
 };
 
+//.......................................forget password..........................
+
+//  FORGOT PASSWORD CONTROLLER
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const student = await Student.findOne({ email });
+
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: "Student not found",
+      });
+    }
+
+    // generate random password
+    const newPassword = Math.random().toString(36).slice(-8);
+
+    // hash password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    student.password = hashedPassword;
+    await student.save();
+
+    res.status(200).json({
+      success: true,
+      message: "New password generated",
+      newPassword,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+/**
+ * =========================
+ * GET PROFILE
+ * =========================
+ */
 export const getStudentProfile = async (req, res) => {
   try {
     if (req.user.role !== "student") {
@@ -228,6 +274,11 @@ export const getStudentProfile = async (req, res) => {
   }
 };
 
+/**
+ * =========================
+ * UPDATE PROFILE
+ * =========================
+ */
 export const profileUpdate = async (req, res) => {
   try {
     const studentId = req.user.id;
@@ -243,12 +294,10 @@ export const profileUpdate = async (req, res) => {
       parentPhone,
     };
 
-    // remove undefined fields
     Object.keys(updateData).forEach(
       (key) => updateData[key] === undefined && delete updateData[key],
     );
 
-    // handle profile image upload
     if (req.file?.path) {
       const uploadedImage = await uploadOnCloudinary(req.file.path);
 
@@ -274,6 +323,9 @@ export const profileUpdate = async (req, res) => {
         message: "Student not found",
       });
     }
+
+    // 🔥 ACTIVITY LOG
+    await logActivity(`Profile updated: ${updatedStudent.name}`, "student");
 
     return res.status(200).json({
       success: true,
