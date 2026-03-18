@@ -2,7 +2,6 @@ import mongoose from "mongoose";
 import Student from "../Models/Student.js";
 import Room from "../Models/Room.js";
 import RoomAllocation from "../Models/RoomAllocation.js";
-import { logActivity } from "../utils/logActivity.js";
 
 /**
  * ============================
@@ -79,12 +78,6 @@ export const allocateRoom = async (req, res) => {
     await session.commitTransaction();
     session.endSession();
 
-    // 🔥 ACTIVITY LOG
-    await logActivity(
-      `Room allocated: ${student.name} → Room ${room.roomNumber}`,
-      "room",
-    );
-
     res.status(201).json({
       success: true,
       message: "Room allocated successfully",
@@ -150,12 +143,6 @@ export const deallocateRoom = async (req, res) => {
 
     await session.commitTransaction();
     session.endSession();
-
-    //  ACTIVITY LOG
-    await logActivity(
-      `Room deallocated: ${student.name} left Room ${room.roomNumber}`,
-      "room",
-    );
 
     res.status(200).json({
       success: true,
@@ -261,12 +248,6 @@ export const reallocateRoom = async (req, res) => {
 
     await session.commitTransaction();
     session.endSession();
-
-    //  ACTIVITY LOG
-    await logActivity(
-      `Room changed: ${student.name} moved from Room ${oldRoom.roomNumber} → Room ${newRoom.roomNumber}`,
-      "room",
-    );
 
     res.status(200).json({
       success: true,

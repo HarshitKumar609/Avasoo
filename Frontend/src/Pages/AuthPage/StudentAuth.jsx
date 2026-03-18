@@ -11,7 +11,7 @@ const StudentAuth = () => {
   const [mode, setMode] = useState("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [newPassword, setNewPassword] = useState(""); // ✅ new
+  const [newPassword, setNewPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   // RESET FORM
@@ -58,7 +58,7 @@ const StudentAuth = () => {
     setLoading(false);
   };
 
-  // RESET PASSWORD ✅
+  // RESET PASSWORD
   const handleResetPassword = async (e) => {
     e.preventDefault();
 
@@ -101,7 +101,7 @@ const StudentAuth = () => {
             <div className="flex justify-end">
               <button
                 type="button"
-                onClick={() => setMode("reset")} // ✅ changed
+                onClick={() => setMode("reset")} //  changed
                 className="text-sm text-blue-500 hover:underline"
               >
                 Forgot Password?
@@ -132,7 +132,7 @@ const StudentAuth = () => {
           </form>
         )}
 
-        {/* RESET PASSWORD  */}
+        {/* RESET PASSWORD ✅ */}
         {mode === "reset" && (
           <form className="space-y-4" onSubmit={handleResetPassword}>
             <Input
