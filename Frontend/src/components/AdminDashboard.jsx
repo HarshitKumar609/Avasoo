@@ -9,7 +9,7 @@ import {
 import { useNavigate } from "react-router";
 import DashBoardStatusContext from "../Context/DashBoardStatus/DashBoardStatusContext";
 
-/* ================= Components (FIX: moved ABOVE) ================= */
+/* ================= Components ================= */
 
 const StatCard = ({ title, value, icon, accent }) => {
   const accents = {
@@ -31,22 +31,28 @@ const StatCard = ({ title, value, icon, accent }) => {
 };
 
 const ActivityItem = ({ text, time }) => (
-  <li className="flex justify-between items-center rounded-lg border border-gray-200 dark:border-gray-800 px-4 py-3 hover:bg-gray-50 dark:hover:bg-white/5 transition">
-    <span className="text-gray-700 dark:text-gray-200">{text}</span>
+  <li className="flex justify-between items-center border px-4 py-3 rounded-lg">
+    <span>{text}</span>
     <span className="text-xs text-gray-400">{time}</span>
   </li>
 );
 
-/* ================= MAIN COMPONENT ================= */
+/* ================= MAIN ================= */
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const { dashboardData, loading, getDashboardStats } = useContext(
-    DashBoardStatusContext,
-  );
+
+  const {
+    dashboardData,
+    loading,
+    getDashboardStats,
+    activities,
+    getRecentActivities,
+  } = useContext(DashBoardStatusContext);
 
   useEffect(() => {
     getDashboardStats();
+    getRecentActivities(); // ✅ fetch activities
   }, []);
 
   const ActionButton = ({ icon, label, onClick }) => (
@@ -134,23 +140,20 @@ const AdminDashboard = () => {
         </div>
 
         {/* Recent Activity */}
-        <div className="lg:col-span-2 glass-card p-6">
-          <h2 className="section-title">Recent Activity</h2>
+        {/* ACTIVITY */}
+        <div className="lg:col-span-2">
+          <h2 className="font-semibold mb-3">Recent Activity</h2>
 
-          <ul className="mt-4 space-y-4">
-            {/* ✅ Static fallback (no UI change) */}
-            <ActivityItem
-              text="New student added to Block B"
-              time="10 mins ago"
-            />
-            <ActivityItem
-              text="Complaint resolved (Room A-102)"
-              time="1 hour ago"
-            />
-            <ActivityItem
-              text="Notice posted: Mess timing updated"
-              time="Yesterday"
-            />
+          <ul className="space-y-3">
+            {loading ? (
+              <p>Loading...</p>
+            ) : activities.length > 0 ? (
+              activities.map((item, index) => (
+                <ActivityItem key={index} text={item.text} time={item.time} />
+              ))
+            ) : (
+              <p>No activity found</p>
+            )}
           </ul>
         </div>
       </div>

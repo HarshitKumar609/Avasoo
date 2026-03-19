@@ -5,6 +5,7 @@ const HOST = import.meta.env.VITE_URL;
 
 const DashBoardStatusState = ({ children }) => {
   const [loading, setLoading] = useState(false);
+
   const [dashboardData, setDashboardData] = useState({
     totalStudents: 0,
     activeComplaints: 0,
@@ -16,6 +17,9 @@ const DashBoardStatusState = ({ children }) => {
     },
   });
 
+  const [activities, setActivities] = useState([]); // ✅ NEW
+
+  // ================= DASHBOARD STATS =================
   const getDashboardStats = async () => {
     try {
       setLoading(true);
@@ -44,9 +48,38 @@ const DashBoardStatusState = ({ children }) => {
     }
   };
 
-  // Auto load on mount
+  // ================= RECENT ACTIVITY =================
+  const getRecentActivities = async () => {
+    try {
+      const response = await fetch(
+        `${HOST}/api/dashboardStatus/activity`, // ✅ FIXED URL
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("admin_token")}`,
+          },
+        },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to fetch activities");
+      }
+
+      if (data.success) {
+        setActivities(data.data);
+      }
+    } catch (error) {
+      console.error(error.message);
+    }
+  };
+
+  // ================= LOAD ON START =================
   useEffect(() => {
     getDashboardStats();
+    getRecentActivities(); // ✅ NOW INCLUDED
   }, []);
 
   return (
@@ -55,6 +88,8 @@ const DashBoardStatusState = ({ children }) => {
         dashboardData,
         loading,
         getDashboardStats,
+        activities,
+        getRecentActivities,
       }}
     >
       {children}
