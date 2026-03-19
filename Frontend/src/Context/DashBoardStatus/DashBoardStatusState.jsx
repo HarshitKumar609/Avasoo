@@ -19,7 +19,6 @@ const DashBoardStatusState = ({ children }) => {
 
   const [activities, setActivities] = useState([]); // ✅ NEW
 
-  // ================= DASHBOARD STATS =================
   const getDashboardStats = async () => {
     try {
       setLoading(true);
@@ -48,19 +47,15 @@ const DashBoardStatusState = ({ children }) => {
     }
   };
 
-  // ================= RECENT ACTIVITY =================
   const getRecentActivities = async () => {
     try {
-      const response = await fetch(
-        `${HOST}/api/dashboardStatus/activity`, // ✅ FIXED URL
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("admin_token")}`,
-          },
+      const response = await fetch(`${HOST}/api/recent-activities`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("admin_token")}`,
         },
-      );
+      });
 
       const data = await response.json();
 
@@ -76,7 +71,6 @@ const DashBoardStatusState = ({ children }) => {
     }
   };
 
-  // ================= LOAD ON START =================
   useEffect(() => {
     getDashboardStats();
     getRecentActivities(); // ✅ NOW INCLUDED
