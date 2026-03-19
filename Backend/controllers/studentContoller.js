@@ -3,7 +3,6 @@ import jwt from "jsonwebtoken";
 import RoomAllocation from "../Models/RoomAllocation.js";
 import { uploadOnCloudinary } from "../utils/Cloudinary.js";
 import { logActivity } from "../utils/logActivity.js";
-import bcrypt from "bcryptjs";
 
 /**
  * =========================
@@ -204,77 +203,6 @@ export const studentLogin = async (req, res) => {
   }
 };
 
-//.......................................RESET PASSWORD ..........................
-
-export const resetPassword = async (req, res) => {
-  try {
-    const { email, newPassword } = req.body;
-
-    if (!email || !newPassword) {
-      return res.status(400).json({
-        success: false,
-        message: "Email and new password are required",
-      });
-    }
-
-    const student = await Student.findOne({ email }).select("+password");
-
-    if (!student) {
-      return res.status(404).json({
-        success: false,
-        message: "Student not found",
-      });
-    }
-
-    //  hash new password
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-    student.password = hashedPassword;
-    await student.save();
-
-    res.status(200).json({
-      success: true,
-      message: "Password reset successfully",
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
-/**
- * =========================
- * GET PROFILE
- * =========================
- */
-export const getStudentProfile = async (req, res) => {
-  try {
-    if (req.user.role !== "student") {
-      return res.status(403).json({ message: "Students only" });
-    }
-
-    const student = await Student.findById(req.user.id).select("-password");
-
-    if (!student) {
-      return res.status(404).json({
-        success: false,
-        message: "Student not found",
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      student,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message || "Internal Server Error",
-    });
-  }
-};
-
 /**
  * =========================
  * UPDATE PROFILE
@@ -325,7 +253,7 @@ export const profileUpdate = async (req, res) => {
       });
     }
 
-    // 🔥 ACTIVITY LOG
+    //  ACTIVITY LOG
     await logActivity(`Profile updated: ${updatedStudent.name}`, "student");
 
     return res.status(200).json({
@@ -338,6 +266,33 @@ export const profileUpdate = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Internal server error",
+    });
+  }
+};
+
+export const getStudentProfile = async (req, res) => {
+  try {
+    if (req.user.role !== "student") {
+      return res.status(403).json({ message: "Students only" });
+    }
+
+    const student = await Student.findById(req.user.id).select("-password");
+
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: "Student not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      student,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || "Internal Server Error",
     });
   }
 };

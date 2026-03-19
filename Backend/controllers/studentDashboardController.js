@@ -23,7 +23,7 @@ export const studentDashboardStats = async (req, res) => {
       active: true,
     }).populate("room");
 
-    // 3️⃣ Run everything in parallel 🚀
+    // 3️⃣ Run everything in parallel
     const [pendingComplaints, noticesCount, recentNotices, activities] =
       await Promise.all([
         Complaint.countDocuments({
@@ -42,7 +42,7 @@ export const studentDashboardStats = async (req, res) => {
         Activity.find({
           $or: [{ user: studentId }, { type: "notice" }],
         })
-          .populate("user", "name") // ✅ FIX
+          .populate("user", "name")
           .sort({ createdAt: -1 })
           .limit(5),
       ]);
@@ -73,7 +73,7 @@ export const studentDashboardStats = async (req, res) => {
           status: student.feesStatus || "Due",
         },
 
-        // 🔥 FINAL ACTIVITY
+        // FINAL ACTIVITY
         activity: activities,
       },
     });

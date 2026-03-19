@@ -3,7 +3,7 @@ import StudentAuthContext from "../../Context/StudentAuthContext/StudentAuthCont
 import { useNavigate } from "react-router-dom";
 
 const StudentAuth = () => {
-  const { studentLogin, activateStudent, resetPassword, isAuthenticated } =
+  const { studentLogin, activateStudent, isAuthenticated } =
     useContext(StudentAuthContext);
 
   const navigate = useNavigate();
@@ -11,14 +11,12 @@ const StudentAuth = () => {
   const [mode, setMode] = useState("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   // RESET FORM
   useEffect(() => {
     setEmail("");
     setPassword("");
-    setNewPassword("");
   }, [mode]);
 
   // REDIRECT
@@ -58,17 +56,6 @@ const StudentAuth = () => {
     setLoading(false);
   };
 
-  // RESET PASSWORD
-  const handleResetPassword = async (e) => {
-    e.preventDefault();
-
-    setLoading(true);
-    await resetPassword(email, newPassword);
-    setLoading(false);
-
-    setMode("login");
-  };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
       <div className="w-full max-w-md bg-white dark:bg-gray-900 shadow-2xl rounded-2xl p-8 border border-gray-200 dark:border-gray-700">
@@ -98,16 +85,6 @@ const StudentAuth = () => {
               onChange={(e) => setPassword(e.target.value)}
             />
 
-            <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={() => setMode("reset")} //  changed
-                className="text-sm text-blue-500 hover:underline"
-              >
-                Forgot Password?
-              </button>
-            </div>
-
             <PrimaryButton loading={loading}>Login</PrimaryButton>
           </form>
         )}
@@ -129,36 +106,6 @@ const StudentAuth = () => {
             />
 
             <PrimaryButton loading={loading}>Activate Account</PrimaryButton>
-          </form>
-        )}
-
-        {/* RESET PASSWORD ✅ */}
-        {mode === "reset" && (
-          <form className="space-y-4" onSubmit={handleResetPassword}>
-            <Input
-              label="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-
-            <Input
-              label="New Password"
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-            />
-
-            <PrimaryButton loading={loading}>Reset Password</PrimaryButton>
-
-            <div className="text-center">
-              <button
-                type="button"
-                onClick={() => setMode("login")}
-                className="text-sm text-blue-500 hover:underline"
-              >
-                Back to Login
-              </button>
-            </div>
           </form>
         )}
       </div>

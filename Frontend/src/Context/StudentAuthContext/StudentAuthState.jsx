@@ -110,35 +110,6 @@ const StudentAuthState = ({ children }) => {
   };
 
   // =====================
-  // RESET PASSWORD
-  // =====================
-  const resetPassword = async (email, newPassword) => {
-    if (!email || !newPassword) {
-      toast.error("Please fill all fields");
-      return;
-    }
-
-    try {
-      const res = await fetch(`${HOST}/api/student/auth/reset-password`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, newPassword }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        toast.error(data.message || "Reset failed");
-        return;
-      }
-
-      toast.success("Password reset successfully");
-    } catch {
-      toast.error("Server error");
-    }
-  };
-
-  // =====================
   // UPDATE PROFILE
   // =====================
   const updateStudentProfile = async (formData) => {
@@ -182,7 +153,6 @@ const StudentAuthState = ({ children }) => {
         activateStudent,
         updateStudentProfile,
         logout,
-        resetPassword,
       }}
     >
       {children}
