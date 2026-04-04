@@ -50,6 +50,7 @@ const Sidebar = () => {
         className={`
           fixed md:static z-50 h-screen w-64 flex flex-col
           bg-slate-900 text-white transition-transform duration-300
+           border-r border-transparent dark:border-white/10
           ${mobileOpen ? "translate-x-0" : "-translate-x-full"}
           md:translate-x-0
         `}

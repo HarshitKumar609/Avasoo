@@ -49,7 +49,13 @@ const AllStudent = () => {
 
   /* ================= Local Filter ================= */
 
-  const filteredStudents = useMemo(() => students, [students]);
+  const filteredStudents = useMemo(() => {
+    if (status === "all") return students;
+
+    return students.filter((s) =>
+      status === "active" ? s.isActive : !s.isActive,
+    );
+  }, [students, status]);
 
   const toggleDrawer = (id) => {
     setOpenStudentId((prev) => (prev === id ? null : id));
@@ -189,13 +195,17 @@ const AllStudent = () => {
                             <p className="text-gray-500 dark:text-gray-400">
                               Parent Name
                             </p>
-                            <p className="font-medium">{s.parentName}</p>
+                            <p className="font-medium text-gray-900 dark:text-gray-100">
+                              {s.parentName}
+                            </p>
                           </div>
                           <div>
                             <p className="text-gray-500 dark:text-gray-400">
                               Parent Phone
                             </p>
-                            <p className="font-medium">{s.parentPhone}</p>
+                            <p className="font-medium text-gray-900 dark:text-gray-100">
+                              {s.parentPhone}
+                            </p>
                           </div>
                         </div>
                       </td>

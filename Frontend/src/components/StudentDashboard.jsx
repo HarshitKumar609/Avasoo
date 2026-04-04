@@ -133,8 +133,10 @@ const StudentDashboard = () => {
                 key={item._id}
                 className="flex justify-between items-center rounded-lg border border-gray-200 dark:border-gray-800 px-4 py-3"
               >
-                <span>{item.text}</span>
-                <span className="text-xs text-gray-400">
+                <span className="text-gray-800 dark:text-gray-200">
+                  {item.text}
+                </span>
+                <span className="text-xs text-gray-800 dark:text-gray-200">
                   {new Date(item.createdAt).toLocaleString()}
                 </span>
               </li>
