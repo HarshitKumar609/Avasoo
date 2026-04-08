@@ -17,13 +17,13 @@ const DashBoardStatusState = ({ children }) => {
     },
   });
 
-  const [activities, setActivities] = useState([]); // ✅ NEW
+  const [activities, setActivities] = useState([]);
 
   const getDashboardStats = async () => {
     try {
       setLoading(true);
 
-      const response = await fetch(`${HOST}/api/dashboardStatus`, {
+      const response = await fetch(`${HOST}/api/dashboardStatus/activity`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -38,7 +38,7 @@ const DashBoardStatusState = ({ children }) => {
       }
 
       if (data.success) {
-        setDashboardData(data.data);
+        setActivities(data.activities);
       }
     } catch (error) {
       console.error(error.message);
@@ -73,7 +73,7 @@ const DashBoardStatusState = ({ children }) => {
 
   useEffect(() => {
     getDashboardStats();
-    getRecentActivities(); // ✅ NOW INCLUDED
+    getRecentActivities();
   }, []);
 
   return (

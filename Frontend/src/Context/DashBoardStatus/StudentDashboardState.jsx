@@ -21,7 +21,7 @@ const StudentDashboardState = ({ children }) => {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`, // ✅ use the same token
+            Authorization: `Bearer ${token}`,
           },
         },
       );

@@ -9,7 +9,7 @@ import {
 import { useNavigate } from "react-router";
 import DashBoardStatusContext from "../Context/DashBoardStatus/DashBoardStatusContext";
 
-/* ================= Components (FIX: moved ABOVE) ================= */
+/* ================= Components================= */
 
 const StatCard = ({ title, value, icon, accent }) => {
   const accents = {
@@ -41,7 +41,7 @@ const ActivityItem = ({ text, time }) => (
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const { dashboardData, loading, getDashboardStats } = useContext(
+  const { dashboardData, loading, getDashboardStats, activities } = useContext(
     DashBoardStatusContext,
   );
 
@@ -60,6 +60,17 @@ const AdminDashboard = () => {
       {label}
     </button>
   );
+
+  // ✅ CHANGE 4: TIME FORMAT FUNCTION
+  const timeAgo = (date) => {
+    const diff = Math.floor((Date.now() - new Date(date)) / 60000);
+
+    if (diff < 1) return "Just now";
+    if (diff < 60) return `${diff} mins ago`;
+    if (diff < 1440) return `${Math.floor(diff / 60)} hrs ago`;
+
+    return `${Math.floor(diff / 1440)} days ago`;
+  };
 
   return (
     <div className="min-h-screen p-6">
@@ -136,21 +147,18 @@ const AdminDashboard = () => {
         {/* Recent Activity */}
         <div className="lg:col-span-2 glass-card p-6">
           <h2 className="section-title">Recent Activity</h2>
-
           <ul className="mt-4 space-y-4">
-            {/* ✅ Static fallback (no UI change) */}
-            <ActivityItem
-              text="New student added to Block B"
-              time="10 mins ago"
-            />
-            <ActivityItem
-              text="Complaint resolved (Room A-102)"
-              time="1 hour ago"
-            />
-            <ActivityItem
-              text="Notice posted: Mess timing updated"
-              time="Yesterday"
-            />
+            {activities.length === 0 ? (
+              <p className="text-gray-400 text-sm">No recent activity</p>
+            ) : (
+              activities.map((item) => (
+                <ActivityItem
+                  key={item._id}
+                  text={item.text}
+                  time={timeAgo(item.createdAt)} //  dynamic time
+                />
+              ))
+            )}
           </ul>
         </div>
       </div>

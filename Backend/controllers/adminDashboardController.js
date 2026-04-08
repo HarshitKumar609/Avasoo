@@ -59,7 +59,7 @@ export const getRecentActivity = async (req, res) => {
 
     // ✅ ADMIN → sees all
     if (req.user.role === "admin") {
-      activities = await Activity.find().sort({ createdAt: -1 }).limit(10);
+      activities = await Activity.find().sort({ createdAt: -1 }).limit(5);
     }
 
     // ✅ STUDENT → sees only their activity
@@ -68,7 +68,7 @@ export const getRecentActivity = async (req, res) => {
         user: req.user.id,
       })
         .sort({ createdAt: -1 })
-        .limit(10);
+        .limit(5);
     }
 
     res.status(200).json({
